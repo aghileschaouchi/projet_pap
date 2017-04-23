@@ -182,13 +182,12 @@ void first_touch_v1_1 ()
 //Distribution des indices selon un collapse
   //Faire un collapse sur tout ou parcourir les tuiles sequentiellement puis paralleliser les deux autres boucles ?
 #pragma omp parallel for collapse(4) schedule(runtime) 
-  {
   for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
     for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ)
       for (int i = i_tuile; i < i_tuile + TILE_SEQ; i++)
         for (int j = j_tuile; j < j_tuile + TILE_SEQ; j += 512)
           next_img (i,j) = cur_img (j, i);
-  }
+
 }
 
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
@@ -234,11 +233,12 @@ void first_touch_v2 ()
   {
     #pragma omp single
     {
-      for(i=0; i<DIM ; i++)
-        for(j=0; j < DIM ; j += 512)
-          #pragma omp task firstprivate(i,j) depend(in:tile[i-1][j-1],tile[i-1][j],tile[i-1][j+1],tile[i][j-1],tile[i][j+1],tile[i+1][j-1],tile[i+1][j],tile[i+1][j+1]) \
-           depend(out:tile[i][j])
+      for(int i=0; i<DIM ; i++)
+        for(int j=0; j < DIM ; j += 512)
+          #pragma omp task firstprivate(i,j) depend(out:tile[i][j]) depend(in:tile[i-1][j-1], tile[i-1][j], tile[i-1][j+1], tile[i][j-1], tile[i][j+1], tile[i+1][j-1], tile[i+1][j], tile[i+1][j+1])
+          {
           next_img (i, j) = cur_img (j, i);
+          }
     } 
   }
 }
