@@ -10,7 +10,7 @@ unsigned version = 0;
 
 //Taille de la tuille en séquentielle
 #define TILE_SEQ 32
-#define TILE_TASK 32
+#define TILE_TASK 2048
 
 //Tuile pour les task
 volatile int tile[TILE_TASK][TILE_TASK+1];
@@ -66,7 +66,7 @@ char *version_name [] = {
   "OpenMP for tuilée",
   "OpenMP for optimisée",
   "OpenMP task tuilée",
-  "OpenMP task optimisée"
+  "OpenMP task optimisée",
   "OpenCL",
 };
 
@@ -181,7 +181,7 @@ void first_touch_v1_1 ()
 
 //Distribution des indices selon un collapse
   //Faire un collapse sur tout ou parcourir les tuiles sequentiellement puis paralleliser les deux autres boucles ?
-#pragma omp parallel for collapse(4) schedule(runtime) 
+#pragma omp parallel for collapse(2) schedule(runtime) 
   for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
     for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ)
       for (int i = i_tuile; i < i_tuile + TILE_SEQ; i++)
@@ -245,13 +245,13 @@ void first_touch_v2 ()
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v2(unsigned nb_iter)
 {
-  while(1)
-  { 
+  for(unsigned it = 1; it <= nb_iter; it++){
     first_touch_v2 ();
 
     swap_images ();
+    return 0; // on ne s'arrête jamais
   }
-  return 0; // on ne s'arrête jamais
+  
 }
 
 ///////////////////////////// Version OpenMP task optimisée
@@ -271,6 +271,6 @@ unsigned compute_v2_1(unsigned nb_iter)
 
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v3 (unsigned nb_iter)
-{
+{ 
   return ocl_compute (nb_iter);
 }

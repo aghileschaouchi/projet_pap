@@ -24,6 +24,33 @@ __kernel void transpose (__global unsigned *in, __global unsigned *out)
 }
 
 
+_kernel void scrollup (__global unsigned *in, __global unsigned *out)
+{
+  int x = get_global_id (0);
+  int y = get_global_id (1);
+
+  int compteur = 0;
+  // Si on est pas dans les bords
+  if((x != 0) && (y != 0) && (x != DIM - 1) && (y != DIM -1)){
+
+  // On parcours les voisins de la cellule courrante
+  for(int i = x - 1; i <= x + 1 && i != x; i++)
+    for(int j = y - 1; j <= y + 1 && j != y; j++)
+      // On compte le nombre de cellules vivantes
+      if(in[j * DIM + i] == 0xFFFF00FF)
+        compteur++;
+
+  // Si la cellule courrante est morte et qu'elle a 3 voisines vivantes, elle devient vivante
+  if(in[y * DIM + x] == 0x0 && compteur == 3)
+    out[y * DIM + x] = 0xFFFF00FF;
+
+  // Si elle est vivante et qu'elle a moins de 2 ou plus de 3 voisines vivantes, elle meurt
+  else if(in[y * DIM + x] == 0xFFFF00FF && ((compteur < 3) || (compteur > 2)));
+    out[y * DIM + x] = 0x0;
+      
+  }
+
+ }
 
 
 
