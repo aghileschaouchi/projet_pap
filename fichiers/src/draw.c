@@ -64,10 +64,11 @@ void draw_guns (void)
   memset(&cur_img(0,0), 0, DIM*DIM* sizeof(cur_img(0,0))); 
   
   gun (0, 0, 0);
-  gun (0,  DIM-1 , 3);
+  gun (0,  DIM-1 -0, 3);
   gun (DIM - 1 , DIM - 1, 2);
+  //gun (200 , 100, 2);
   gun (DIM - 1 , 0, 1);
-
+  //gun (200 , DIM - 1 -100, 1);
 }
 
 void draw_random (void)

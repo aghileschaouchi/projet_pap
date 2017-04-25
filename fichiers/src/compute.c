@@ -87,6 +87,7 @@ unsigned compute_v0 (unsigned nb_iter)
       for (int j = 0; j < DIM; j++){	
 	int compteur=0;
         //On gére les contours
+	//Si le pixel se trouve en haut a gauche
 	if(i == 0 && j == 0){
           if(cur_img (0, 1) == 0xFFFF00FF)
 	    compteur++;
@@ -95,7 +96,7 @@ unsigned compute_v0 (unsigned nb_iter)
           if(cur_img (1, 1) == 0xFFFF00FF)
             compteur++;
         }
-        
+        //En haut a droite
         else if(i == 0 && j == DIM-1){
 	  if(cur_img (0, DIM-2) == 0xFFFF00FF)
 	    compteur++;
@@ -104,6 +105,7 @@ unsigned compute_v0 (unsigned nb_iter)
           if(cur_img (1, DIM-2) == 0xFFFF00FF)
             compteur++;
         }
+	//En bas a gauche
         else if(i == DIM-1 && j == 0){
           if(cur_img (DIM-2, 0) == 0xFFFF00FF)
 	    compteur++;
@@ -112,7 +114,7 @@ unsigned compute_v0 (unsigned nb_iter)
           if(cur_img (DIM-1, 1) == 0xFFFF00FF)
             compteur++;
         }
-        
+        //En bas a droite
         else if(i == DIM-1 && j == DIM-1){
 	  if(cur_img (DIM-2, DIM-2) == 0xFFFF00FF)
 	    compteur++;
@@ -121,24 +123,28 @@ unsigned compute_v0 (unsigned nb_iter)
           if(cur_img (DIM-1, DIM-2) == 0xFFFF00FF)
             compteur++;
         }
+	//Ligne du haut
         else if(i == 0){
 	  for(int k=i; k <= i+1 ; k++)
 	    for(int h=j-1; h <= j+1; h++)
                if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
                  compteur++;
         }
+	//Ligne du bas
 	else if(i == DIM-1){
 	  for(int k=i-1; k <= i ; k++)
 	    for(int h=j-1; h <= j+1; h++)
                if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
                  compteur++;
         }
+	//Colonne de gauche
 	else if(j == 0){
 	  for(int k=i-1; k <= i+1 ; k++)
 	    for(int h=j; h <= j+1; h++)
                if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
                  compteur++;
         }
+	//Colone de bas
 	else if(j == DIM-1){
 	  for(int k=i-1; k <= i+1 ; k++)
 	    for(int h=j-1; h <= j; h++)
