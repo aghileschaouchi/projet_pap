@@ -84,12 +84,129 @@ unsigned compute_v0 (unsigned nb_iter)
 {
   for (unsigned it = 1; it <= nb_iter; it ++) {
     for (int i = 0; i < DIM; i++)
-      for (int j = 0; j < DIM; j++){
+      for (int j = 0; j < DIM; j++){	
+	int compteur=0;
+        //On gére les contours
+	if(i == 0 && j == 0){
+          if(cur_img (0, 1) == 0xFFFF00FF)
+	    compteur++;
+          if(cur_img (1, 0) == 0xFFFF00FF)
+            compteur++;
+          if(cur_img (1, 1) == 0xFFFF00FF)
+            compteur++;
+        }
+        
+        else if(i == 0 && j == DIM-1){
+	  if(cur_img (0, DIM-2) == 0xFFFF00FF)
+	    compteur++;
+          if(cur_img (1, DIM-1) == 0xFFFF00FF)
+            compteur++;
+          if(cur_img (1, DIM-2) == 0xFFFF00FF)
+            compteur++;
+        }
+        else if(i == DIM-1 && j == 0){
+          if(cur_img (DIM-2, 0) == 0xFFFF00FF)
+	    compteur++;
+          if(cur_img (DIM-2, 1) == 0xFFFF00FF)
+            compteur++;
+          if(cur_img (DIM-1, 1) == 0xFFFF00FF)
+            compteur++;
+        }
+        
+        else if(i == DIM-1 && j == DIM-1){
+	  if(cur_img (DIM-2, DIM-2) == 0xFFFF00FF)
+	    compteur++;
+          if(cur_img (DIM-2, DIM-1) == 0xFFFF00FF)
+            compteur++;
+          if(cur_img (DIM-1, DIM-2) == 0xFFFF00FF)
+            compteur++;
+        }
+        else if(i == 0){
+	  for(int k=i; k <= i+1 ; k++)
+	    for(int h=j-1; h <= j+1; h++)
+               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
+                 compteur++;
+        }
+	else if(i == DIM-1){
+	  for(int k=i-1; k <= i ; k++)
+	    for(int h=j-1; h <= j+1; h++)
+               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
+                 compteur++;
+        }
+	else if(j == 0){
+	  for(int k=i-1; k <= i+1 ; k++)
+	    for(int h=j; h <= j+1; h++)
+               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
+                 compteur++;
+        }
+	else if(j == DIM-1){
+	  for(int k=i-1; k <= i+1 ; k++)
+	    for(int h=j-1; h <= j; h++)
+               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
+                 compteur++;
+        }
+	//Au millieu
+ 	else{
+	  if(cur_img(i-1, j-1) == 0xFFFF00FF)
+	    compteur++;
+	  if(cur_img(i-1, j) == 0xFFFF00FF)
+	    compteur++;
+	  if(cur_img(i-1, j+1) == 0xFFFF00FF)
+	    compteur++;
+
+	  if(cur_img(i, j-1) == 0xFFFF00FF)
+	    compteur++;
+	  if(cur_img(i, j+1) == 0xFFFF00FF)
+	    compteur++;
+
+	  if(cur_img(i+1, j-1) == 0xFFFF00FF)
+	    compteur++;
+	  if(cur_img(i+1, j) == 0xFFFF00FF)
+	    compteur++;
+	  if(cur_img(i+1, j+1) == 0xFFFF00FF)
+	    compteur++;		
+          }
+	//Régles du jeu de la vie
+	//Si la cellule courrante est vivante
+        if(cur_img (i, j) == 0xFFFF00FF){
+          if(compteur == 0 || compteur == 1)
+            next_img (i,j) = 0x0;
+          if(compteur == 2 || compteur == 3)
+            next_img (i,j) = 0xFFFF00FF;
+          if(compteur > 3)
+            next_img (i, j) = 0x0;
+        }
+	//Si elle est morte  
+	if(cur_img (i, j) == 0x0 && compteur == 3)
+          next_img (i, j) = 0xFFFF00FF;
+
+	if(cur_img (i, j) == 0x0 && compteur != 3)
+          next_img (i, j) = 0x0;
+      }
+    
+    swap_images ();
+  }
+  // retourne le nombre d'étapes nécessaires à la
+  // stabilisation du calcul ou bien 0 si le calcul n'est pas
+  // stabilisé au bout des nb_iter itérations
+  return 0;
+}
+
+
+
+///////////////////////////// Version séquentielle simple
+/*
+
+unsigned compute_v0 (unsigned nb_iter)
+{
+  for (unsigned it = 1; it <= nb_iter; it ++) {
+    for (int i = 50; i < DIM -50; i++)
+      for (int j = 50; j < DIM -50; j++){
          //next_img (i, j) = cur_img (j, i);
 	//next_img(i, j) = 0xFFFF00FF;
 	
-	int compteur=1;
-
+	int compteur=0;
+/*
         if(i == 0 && j == 0){
           if(cur_img (0, 1) == 0xFFFF00FF)
 	    compteur++;
@@ -149,19 +266,8 @@ unsigned compute_v0 (unsigned nb_iter)
                  compteur++;
         }
 /*
-        else{
-          // On parcours les voisins de la cellule courrante
-          for(int k = i - 1; k <= i + 1; k++){
-            //printf("(%d,%d):k:%d\n",i,j,k);
-            for(int h = j - 1; h <= j + 1; h++)
-              {
-	      //printf("(%d,%d):k:%d\n",i,j,k);
-              // On compte le nombre de cellules vivantes
-              if(cur_img (k, h) == 0xFFFF00FF && ((k != i)&&(h != j)))
-                compteur++;
-              }
-          }*/
-	else{
+
+//	else{
 	  if(cur_img(i-1, j-1) == 0xFFFF00FF)
 	    compteur++;
 	  if(cur_img(i-1, j) == 0xFFFF00FF)
@@ -181,82 +287,19 @@ unsigned compute_v0 (unsigned nb_iter)
 	  if(cur_img(i+1, j+1) == 0xFFFF00FF)
 	    compteur++;
 	
+  //       } 
 
-         }
-/*
-       	  // Si elle est vivante et qu'elle a moins de 2 ou plus de 3 voisines vivantes, elle meurt
-          if(cur_img (i, j) == 0xFFFF00FF && ((compteur < 2) || (compteur > 3))){
-            next_img (i, j) = 0x0;
-	    printf("1");
-	  }
-
-          // Si la cellule courrante est morte et qu'elle a 3 voisines vivantes, elle devient vivante
-          if(cur_img (i, j) == 0x0 && compteur == 2){
-            next_img (i, j) = 0xFFFF00FF;
-	    printf("2");
-	  }
-*/
 	  if(cur_img (i, j) == 0xFFFF00FF && compteur < 2)
 	    next_img (i,j) = 0x0;
 
-	  if(cur_img (i, j) == 0xFFFF00FF && (compteur == 2 || compteur == 3))
+	  else if(cur_img (i, j) == 0xFFFF00FF && (compteur == 2 || compteur == 3))
 	    next_img (i,j) = 0xFFFF00FF;          
 
-	  if(cur_img (i, j) == 0xFFFF00FF && compteur > 3)
+	  else if(cur_img (i, j) == 0xFFFF00FF && compteur > 3)
 	    next_img (i, j) = 0x0;
 
-	  if(cur_img (i, j) == 0x0 && compteur == 3)
+	  else if(cur_img (i, j) == 0x0 && compteur == 3)
             next_img (i, j) = 0xFFFF00FF;
-	
-      }
-    
-    swap_images ();
-  }
-  // retourne le nombre d'étapes nécessaires à la
-  // stabilisation du calcul ou bien 0 si le calcul n'est pas
-  // stabilisé au bout des nb_iter itérations
-  return 0;
-}
-
-
-
-///////////////////////////// Version séquentielle simple
-/*
-
-unsigned compute_v0 (unsigned nb_iter)
-{
-  for (unsigned it = 1; it <= nb_iter; it ++) {
-    for (int i = 0; i < DIM; i++)
-      for (int j = 0; j < DIM; j++){
-         //next_img (i, j) = cur_img (j, i);
-	//next_img(i, j) = 0xFFFF00FF;
-	
-	int compteur=0;
-
-        
-          // On parcours les voisins de la cellule courrante
-          for(int k = i - 1; k <= i + 1; k++){
-            //printf("(%d,%d):k:%d\n",i,j,k);
-            for(int h = j - 1; h <= j + 1; h++)
-              {
-	      //printf("(%d,%d):k:%d\n",i,j,k);
-              // On compte le nombre de cellules vivantes
-              if(cur_img (k, h) == 0xFFFF00FF && ((k != i)&&(h != j)))
-                compteur++;
-              }
-          
-
-	  if(compteur)	
-            printf("%x:compteur:%d\n", cur_img(i, j),compteur);
-	printf("(%d,%d)\n",i,j);
-         }
-          // Si la cellule courrante est morte et qu'elle a 3 voisines vivantes, elle devient vivante
-          if(cur_img (i, j) == 0x0 && compteur == 3)
-            next_img (i, j) = 0xFFFF00FF;
-
-          // Si elle est vivante et qu'elle a moins de 2 ou plus de 3 voisines vivantes, elle meurt
-          else if(cur_img (i, j) == 0xFFFF00FF && ((compteur < 2) || (compteur > 3)));
-            next_img (i, j) = 0x0;
 	
       }
     
