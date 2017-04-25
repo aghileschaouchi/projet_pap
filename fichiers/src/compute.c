@@ -347,12 +347,18 @@ unsigned compute_v0_2 (unsigned nb_iter)
 
 void first_touch_v1 ()
 {
-  int i,j ;
+
+  //Initialisation (first touch)
+  #pragma omp parallel for
+  for(int i=0; i<DIM; i++)
+    for(int j=0; j<DIM; j+=512)
+      cur_img(i,j) = next_img(i,j) = 0;
+  
   int compteur=0;
-#pragma omp parallel for reduction(+:compteur)
-  for(i=0; i<DIM ; i++) 
-    for(j=0; j < DIM ; j += 512){
-      compteur=0;
+#pragma omp parallel for 
+  for(int i=0; i<DIM ; i++) 
+    for(int j=0; j < DIM ; j++){  
+          int compteur=0;
           //On gére les contours
           //Si le pixel se trouve en haut a gauche
           if(i == 0 && j == 0){
@@ -473,7 +479,7 @@ unsigned compute_v1(unsigned nb_iter)
 
 void first_touch_v1_1 ()
 {
-  int i,j ;
+
   /* A savoir si on aura besoin de ça
   int tuile[32][32];
 
@@ -495,15 +501,23 @@ void first_touch_v1_1 ()
   for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
     for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ)
       for (int i = i_tuile; i < i_tuile + TILE_SEQ; i++)
-        for (int j = j_tuile; j < j_tuile + TILE_SEQ; j += 512)
+        for (int j = j_tuile; j < j_tuile + TILE_SEQ; j++)
           next_img (i,j) = cur_img (j, i);
 */
 int compteur=0;
-#pragma omp parallel for firstprivate(compteur)
+int i,j,i_tuile,j_tuile ;
+//Initialisation (first touch)
+/*
+#pragma omp parallel for 
   for(i=0; i<DIM ; i++) 
-    for(j=0; j < DIM ; j += 512){
-      compteur=0;
-
+    for(j=0; j < DIM ; j += 512)
+      cur_img(i,j) = next_img(i,j) =0;
+*/
+#pragma omp parallel for firstprivate(compteur,i,j) collapse(2) schedule(runtime)
+  for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
+    for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ)
+      for (int i = i_tuile; i < i_tuile + TILE_SEQ; i++)
+        for (int j = j_tuile; j < j_tuile + TILE_SEQ; j++){
           //On gére les contours
           //Si le pixel se trouve en haut a gauche
           if(i == 0 && j == 0){
