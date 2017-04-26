@@ -479,45 +479,20 @@ unsigned compute_v1(unsigned nb_iter)
 
 void first_touch_v1_1 ()
 {
-
-  /* A savoir si on aura besoin de ça
-  int tuile[32][32];
-
-  memset(tuile, 0, sizeof(tuile));
-  */
-
-/* Version fournie
-#pragma omp parallel for
-  for(i=0; i<DIM ; i++) {
-    for(j=0; j < DIM ; j += 512)
-      next_img (i, j) = cur_img (i, j) = 0 ;
-  }
-*/
-
-//Distribution des indices selon un collapse
-  //Faire un collapse sur tout ou parcourir les tuiles sequentiellement puis paralleliser les deux autres boucles ?
-/*
-#pragma omp parallel for collapse(2) schedule(runtime) 
-  for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
-    for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ)
-      for (int i = i_tuile; i < i_tuile + TILE_SEQ; i++)
-        for (int j = j_tuile; j < j_tuile + TILE_SEQ; j++)
-          next_img (i,j) = cur_img (j, i);
-*/
 int compteur=0;
-int i,j,i_tuile,j_tuile ;
 //Initialisation (first touch)
-/*
 #pragma omp parallel for 
-  for(i=0; i<DIM ; i++) 
-    for(j=0; j < DIM ; j += 512)
+  for(int i=0; i<DIM ; i++) 
+    for(int j=0; j < DIM ; j += 512)
       cur_img(i,j) = next_img(i,j) =0;
-*/
-#pragma omp parallel for firstprivate(compteur,i,j) collapse(2) schedule(runtime)
+
+#pragma omp parallel for collapse(2) schedule(dynamic) reduction(+:compteur)
   for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
     for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ)
       for (int i = i_tuile; i < i_tuile + TILE_SEQ; i++)
         for (int j = j_tuile; j < j_tuile + TILE_SEQ; j++){
+
+	  compteur=0;
           //On gére les contours
           //Si le pixel se trouve en haut a gauche
           if(i == 0 && j == 0){
@@ -620,6 +595,7 @@ int i,j,i_tuile,j_tuile ;
 
           if(cur_img (i, j) == 0x0 && compteur != 3)
           next_img (i, j) = 0x0;
+	
       }
 }
 
