@@ -10,7 +10,7 @@ unsigned version = 0;
 
 //Taille de la tuille en séquentielle
 #define TILE_SEQ 32
-#define TILE_TASK 32
+#define TILE_TASK 512
 
 //Tuile pour les task
 volatile int tile[TILE_TASK][TILE_TASK+1];
@@ -104,7 +104,7 @@ void game_of_life(int i, int j){
             if(cur_img(i+1, j) == 0xFFFF00FF)
               compteur++;
             if(cur_img(i+1, j+1) == 0xFFFF00FF)
-              compteur++;   	
+              compteur++;     
 
           //Régles du jeu de la vie
           //Si la cellule courrante est vivante
@@ -132,7 +132,7 @@ unsigned compute_v0 (unsigned nb_iter)
   for (unsigned it = 1; it <= nb_iter; it ++) {
     for (int i = 1; i < DIM-1; i++)
       for (int j = 1; j < DIM-1; j++)
-	game_of_life(i,j);
+  game_of_life(i,j);
     
     swap_images ();
   }
@@ -431,7 +431,7 @@ int compteur=0;
       for (int i = i_tuile; i < i_tuile + TILE_SEQ; i++)
         for (int j = j_tuile; j < j_tuile + TILE_SEQ; j++){
 
-	  compteur=0;
+    compteur=0;
           //On gére les contours
           //Si le pixel se trouve en haut a gauche
           if(i == 0 && j == 0){
@@ -534,7 +534,7 @@ int compteur=0;
 
           if(cur_img (i, j) == 0x0 && compteur != 3)
           next_img (i, j) = 0x0;
-	
+  
       }
 }
 
@@ -583,23 +583,17 @@ void first_touch_v2 ()
       {
       next_img (i, j) = cur_img (i, j) = 0;
       }
-  int i,j;
+
   int compteur=0;
-  #pragma omp parallel 
-  {
-    #pragma omp single
-    {
-      
-    } 
-  }
-  #pragma omp task firstprivate(i,j) depend(out:tile[i][j]) depend(in:tile[i-1][j-1], tile[i-1][j], tile[i-1][j+1], tile[i][j-1], tile[i][j+1], tile[i+1][j-1], tile[i+1][j], tile[i+1][j+1])
+  int i,j;
 
-  #pragma omp parallel for collapse(2) schedule(dynamic) reduction(+:compteur)
-  for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
-    for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ)
-      for (int i = i_tuile; i < i_tuile + TILE_SEQ; i++)
-        for (int j = j_tuile; j < j_tuile + TILE_SEQ; j++){
-
+  #pragma omp parallel
+  #pragma omp single
+  for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_TASK)
+    for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_TASK)
+    #pragma omp task firstprivate(i,j) depend(out:tile[i][j]) depend(in:tile[i-1][j-1], tile[i-1][j], tile[i-1][j+1], tile[i][j-1], tile[i][j+1], tile[i+1][j-1], tile[i+1][j], tile[i+1][j+1])
+      for (int i = i_tuile; i < i_tuile + TILE_TASK; i++)
+        for (int j = j_tuile; j < j_tuile + TILE_TASK; j++){
     compteur=0;
           //On gére les contours
           //Si le pixel se trouve en haut a gauche
