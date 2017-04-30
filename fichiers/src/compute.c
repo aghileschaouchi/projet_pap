@@ -86,8 +86,8 @@ unsigned opencl_used [] = {
 
 void game_of_life(int i, int j){
           int compteur=0;
-
-            if(cur_img(i-1, j-1) == 0xFFFF00FF)
+	
+	    if(cur_img(i-1, j-1) == 0xFFFF00FF)
               compteur++;
             if(cur_img(i-1, j) == 0xFFFF00FF)
               compteur++;
@@ -105,7 +105,7 @@ void game_of_life(int i, int j){
               compteur++;
             if(cur_img(i+1, j+1) == 0xFFFF00FF)
               compteur++;     
-
+	  
           //Régles du jeu de la vie
           //Si la cellule courrante est vivante
           if(cur_img (i, j) == 0xFFFF00FF){
@@ -146,79 +146,36 @@ unsigned compute_v0 (unsigned nb_iter)
   
 unsigned compute_v0_1 (unsigned nb_iter)
 {
+int fin_i_tuile;
+int fin_j_tuile;
+int deb_i_tuile;
+int deb_j_tuile;
 for (unsigned it = 1; it <= nb_iter; it ++) {
     for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
-      for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ)
-        for (int i = i_tuile; i < i_tuile + TILE_SEQ; i++)
-          for (int j = j_tuile; j < j_tuile + TILE_SEQ; j++){  
+      for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ){
+
+	fin_i_tuile = i_tuile + TILE_SEQ;
+	fin_j_tuile = j_tuile + TILE_SEQ;
+
+	deb_i_tuile = i_tuile;
+	deb_j_tuile = j_tuile;
+	
+	if(i_tuile == DIM-TILE_SEQ)
+	  fin_i_tuile--;
+
+	if(j_tuile == DIM-TILE_SEQ)
+	  fin_j_tuile--;
+
+	if(i_tuile == 0)
+	  deb_i_tuile++;
+
+	if(j_tuile == 0)
+	  deb_j_tuile++;
+
+        for (int i = deb_i_tuile; i < fin_i_tuile ; i++)
+          for (int j = deb_j_tuile; j < fin_j_tuile ; j++){  
           int compteur=0;
-          //On gére les contours
-          //Si le pixel se trouve en haut a gauche
-          if(i == 0 && j == 0){
-              if(cur_img (0, 1) == 0xFFFF00FF)
-                compteur++;
-              if(cur_img (1, 0) == 0xFFFF00FF)
-                compteur++;
-              if(cur_img (1, 1) == 0xFFFF00FF)
-                compteur++;
-          }
-          //En haut a droite
-          else if(i == 0 && j == DIM-1){
-            if(cur_img (0, DIM-2) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (1, DIM-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (1, DIM-2) == 0xFFFF00FF)
-              compteur++;
-          }
-          //En bas a gauche
-          else if(i == DIM-1 && j == 0){
-            if(cur_img (DIM-2, 0) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-2, 1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-1, 1) == 0xFFFF00FF)
-              compteur++;
-          }
-          //En bas a droite
-          else if(i == DIM-1 && j == DIM-1){
-            if(cur_img (DIM-2, DIM-2) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-2, DIM-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-1, DIM-2) == 0xFFFF00FF)
-              compteur++;
-          }
-          //Ligne du haut
-          else if(i == 0){
-            for(int k=i; k <= i+1 ; k++)
-              for(int h=j-1; h <= j+1; h++)
-                if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
-          //Ligne du bas
-          else if(i == DIM-1){
-            for(int k=i-1; k <= i ; k++)
-              for(int h=j-1; h <= j+1; h++)
-               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
-          //Colonne de gauche
-          else if(j == 0){
-            for(int k=i-1; k <= i+1 ; k++)
-              for(int h=j; h <= j+1; h++)
-                 if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                   compteur++;
-        }
-          //Colone de bas
-          else if(j == DIM-1){
-            for(int k=i-1; k <= i+1 ; k++)
-              for(int h=j-1; h <= j; h++)
-               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
-          //Au millieu
-          else{
+          
             if(cur_img(i-1, j-1) == 0xFFFF00FF)
               compteur++;
             if(cur_img(i-1, j) == 0xFFFF00FF)
@@ -237,7 +194,7 @@ for (unsigned it = 1; it <= nb_iter; it ++) {
               compteur++;
             if(cur_img(i+1, j+1) == 0xFFFF00FF)
               compteur++;   
-            }
+    
           //Régles du jeu de la vie
           //Si la cellule courrante est vivante
           if(cur_img (i, j) == 0xFFFF00FF){
@@ -255,7 +212,7 @@ for (unsigned it = 1; it <= nb_iter; it ++) {
           if(cur_img (i, j) == 0x0 && compteur != 3)
           next_img (i, j) = 0x0;
       }
-    
+    }
     swap_images ();
   }
   // retourne le nombre d'étapes nécessaires à la
@@ -268,12 +225,19 @@ for (unsigned it = 1; it <= nb_iter; it ++) {
 
 unsigned compute_v0_2 (unsigned nb_iter)
 {
-
+int j;
+int deb_j_tuile=0;
   for (unsigned it = 1; it <= nb_iter; it ++) {
-    for (int i = 0; i < DIM; i++)
-      for (int j = 0; j < DIM; j++)
-  next_img (i, j) = cur_img (j, i);
-    
+  
+      for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
+	for(int i = i_tuile; i < i_tuile + TILE_SEQ ; i++){
+	  for(j = deb_j_tuile; j < deb_j_tuile + TILE_SEQ; j++){
+	    game_of_life(i,j);
+	    printf("i:%dj:%d\n");
+	  }
+	deb_j_tuile += TILE_SEQ;
+	}
+	
     swap_images ();
   }
   // retourne le nombre d'étapes nécessaires à la
@@ -293,78 +257,11 @@ void first_touch_v1 ()
     for(int j=0; j<DIM; j+=512)
       cur_img(i,j) = next_img(i,j) = 0;
   
-  int compteur=0;
+  
 #pragma omp parallel for 
-  for(int i=0; i<DIM ; i++) 
-    for(int j=0; j < DIM ; j++){  
+  for(int i=1; i<DIM-1 ; i++) 
+    for(int j=1; j < DIM-1 ; j++){  
           int compteur=0;
-          //On gére les contours
-          //Si le pixel se trouve en haut a gauche
-          if(i == 0 && j == 0){
-              if(cur_img (0, 1) == 0xFFFF00FF)
-                compteur++;
-              if(cur_img (1, 0) == 0xFFFF00FF)
-                compteur++;
-              if(cur_img (1, 1) == 0xFFFF00FF)
-                compteur++;
-          }
-          //En haut a droite
-          else if(i == 0 && j == DIM-1){
-            if(cur_img (0, DIM-2) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (1, DIM-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (1, DIM-2) == 0xFFFF00FF)
-              compteur++;
-          }
-          //En bas a gauche
-          else if(i == DIM-1 && j == 0){
-            if(cur_img (DIM-2, 0) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-2, 1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-1, 1) == 0xFFFF00FF)
-              compteur++;
-          }
-          //En bas a droite
-          else if(i == DIM-1 && j == DIM-1){
-            if(cur_img (DIM-2, DIM-2) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-2, DIM-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-1, DIM-2) == 0xFFFF00FF)
-              compteur++;
-          }
-          //Ligne du haut
-          else if(i == 0){
-            for(int k=i; k <= i+1 ; k++)
-              for(int h=j-1; h <= j+1; h++)
-                if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
-          //Ligne du bas
-          else if(i == DIM-1){
-            for(int k=i-1; k <= i ; k++)
-              for(int h=j-1; h <= j+1; h++)
-               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
-          //Colonne de gauche
-          else if(j == 0){
-            for(int k=i-1; k <= i+1 ; k++)
-              for(int h=j; h <= j+1; h++)
-                 if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                   compteur++;
-        }
-          //Colone de bas
-          else if(j == DIM-1){
-            for(int k=i-1; k <= i+1 ; k++)
-              for(int h=j-1; h <= j; h++)
-               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
-          //Au millieu
-          else{
             if(cur_img(i-1, j-1) == 0xFFFF00FF)
               compteur++;
             if(cur_img(i-1, j) == 0xFFFF00FF)
@@ -383,7 +280,7 @@ void first_touch_v1 ()
               compteur++;
             if(cur_img(i+1, j+1) == 0xFFFF00FF)
               compteur++;   
-            }
+            
           //Régles du jeu de la vie
           //Si la cellule courrante est vivante
           if(cur_img (i, j) == 0xFFFF00FF){
@@ -469,36 +366,9 @@ int compteur=0;
             if(cur_img (DIM-1, DIM-2) == 0xFFFF00FF)
               compteur++;
           }
-          //Ligne du haut
-          else if(i == 0){
-            for(int k=i; k <= i+1 ; k++)
-              for(int h=j-1; h <= j+1; h++)
-                if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
-          //Ligne du bas
-          else if(i == DIM-1){
-            for(int k=i-1; k <= i ; k++)
-              for(int h=j-1; h <= j+1; h++)
-               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
-          //Colonne de gauche
-          else if(j == 0){
-            for(int k=i-1; k <= i+1 ; k++)
-              for(int h=j; h <= j+1; h++)
-                 if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                   compteur++;
-        }
-          //Colone de bas
-          else if(j == DIM-1){
-            for(int k=i-1; k <= i+1 ; k++)
-              for(int h=j-1; h <= j; h++)
-               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
+
           //Au millieu
-          else{
+          else if(i != 0 && i != DIM-1 && j != 0 && j != DIM-1){
             if(cur_img(i-1, j-1) == 0xFFFF00FF)
               compteur++;
             if(cur_img(i-1, j) == 0xFFFF00FF)
@@ -550,7 +420,6 @@ unsigned compute_v1_1(unsigned nb_iter)
 }
 
 ///////////////////////////// Version OpenMP for optimisée
-//TODO!
 void first_touch_v1_2 ()
 {
   int i,j ;
@@ -632,36 +501,8 @@ void first_touch_v2 ()
             if(cur_img (DIM-1, DIM-2) == 0xFFFF00FF)
               compteur++;
           }
-          //Ligne du haut
-          else if(i == 0){
-            for(int k=i; k <= i+1 ; k++)
-              for(int h=j-1; h <= j+1; h++)
-                if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
-          //Ligne du bas
-          else if(i == DIM-1){
-            for(int k=i-1; k <= i ; k++)
-              for(int h=j-1; h <= j+1; h++)
-               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
-          //Colonne de gauche
-          else if(j == 0){
-            for(int k=i-1; k <= i+1 ; k++)
-              for(int h=j; h <= j+1; h++)
-                 if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                   compteur++;
-        }
-          //Colone de bas
-          else if(j == DIM-1){
-            for(int k=i-1; k <= i+1 ; k++)
-              for(int h=j-1; h <= j; h++)
-               if((cur_img (k, h) == 0xFFFF00FF )&& ((k!=i) && (h!=j)))
-                 compteur++;
-          }
           //Au millieu
-          else{
+          else if(i != 0 && i != DIM-1 && j != 0 && j != DIM-1){
             if(cur_img(i-1, j-1) == 0xFFFF00FF)
               compteur++;
             if(cur_img(i-1, j) == 0xFFFF00FF)

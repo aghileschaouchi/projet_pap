@@ -1,55 +1,142 @@
-__kernel void transpose_naif (__global unsigned *in, __global unsigned *out)
+__kernel void scrollup (__global unsigned * in, __global unsigned *out)
 {
   int x = get_global_id (0);
   int y = get_global_id (1);
 
-  out [x * DIM + y] = in [y * DIM + x];
-}
+  
+          int compteur=0;
+          //On gére les contours
+          //Si le pixel se trouve en haut a gauche
+          if(x == 0 && y == 0){
+              if(in[DIM] == 0xFFFF00FF)
+                compteur++;
+              if(in[1] == 0xFFFF00FF)
+                compteur++;
+              if(in[DIM+1] == 0xFFFF00FF)
+                compteur++;
+          }
+          //En haut a droite
+          else if(x == 0 && y == DIM-1){
+            if(in[(DIM-2)*DIM] == 0xFFFF00FF)
+              compteur++;
+            if(in[(DIM-1)*(DIM)+1] == 0xFFFF00FF)
+              compteur++;
+            if(in[(DIM-2)*(DIM)+1] == 0xFFFF00FF)
+              compteur++;
+          }
+          //En bas a gauche
+          else if(x == DIM-1 && y == 0){
+            if(in[DIM-2] == 0xFFFF00FF)
+              compteur++;
+            if(in [(DIM)*(DIM-2)] == 0xFFFF00FF)
+              compteur++;
+            if(in[(DIM)*(DIM-1)] == 0xFFFF00FF)
+              compteur++;
+          }
+          //En bas a droite
+          else if(x == DIM-1 && y == DIM-1){
+            if(in[(DIM-2)*(DIM)+(DIM-2)] == 0xFFFF00FF)
+              compteur++;
+            if(in[(DIM-1)*(DIM)+(DIM-2)] == 0xFFFF00FF)
+              compteur++;
+            if(in[(DIM)*(DIM-2)+(DIM-1)] == 0xFFFF00FF)
+              compteur++;
+          }
+          //Ligne du haut
+          else if(x == 0){
+            if( in[(y - 1) * DIM + x] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y + 1) * DIM + x] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y - 1) * DIM + x + 1] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y * DIM) + x + 1] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y + 1) * DIM + x + 1] == 0xFFFF00FF)
+              compteur++;
+          }
+          //Ligne du bas
+          else if(x == DIM - 1){
 
+            if( in[(y - 1) * DIM + x - 1] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y) * DIM + x - 1] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y + 1) * DIM + x - 1] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y - 1) * DIM + x] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y * DIM) + x] == 0xFFFF00FF)
+              compteur++;
 
+          }
+          //Colonne de gauche
+          else if(y == 0){
 
-__kernel void transpose (__global unsigned *in, __global unsigned *out)
-{
-  __local unsigned tile [TILEX][TILEY+1];
-  int x = get_global_id (0);
-  int y = get_global_id (1);
-  int xloc = get_local_id (0);
-  int yloc = get_local_id (1);
+            if( in[(y) * DIM + x - 1] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y + 1) * DIM + x - 1] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y + 1) * DIM + x] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y) * DIM + x + 1] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y + 1) * (DIM) + x + 1] == 0xFFFF00FF)
+              compteur++;
+        }
+          //Colone de bas
+          else if(y == DIM - 1){
 
-  tile [xloc][yloc] = in [y * DIM + x];
+            if( in[(y) * DIM + x - 1] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y - 1) * DIM + x - 1] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y - 1) * DIM + x] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y) * DIM + x + 1] == 0xFFFF00FF)
+              compteur++;
+            if( in[(y - 1) * (DIM) + x + 1] == 0xFFFF00FF)
+              compteur++;
 
-  barrier (CLK_LOCAL_MEM_FENCE);
+          }
+          //Au millieu
+          else{
+            if(in[(y-1) * DIM + (x - 1)] == 0xFFFF00FF)
+              compteur++;
+            if(in[y * DIM + (x - 1)] == 0xFFFF00FF)
+              compteur++;
+            if(in[(y +1) * DIM + ( x - 1)] == 0xFFFF00FF)
+              compteur++;
 
-  out [(x - xloc + yloc) * DIM + y - yloc + xloc] = tile [yloc][xloc];
-}
+            if(in[(y - 1) * DIM + x] == 0xFFFF00FF)
+              compteur++;
+            if(in[(y + 1) * DIM + x] == 0xFFFF00FF)
+              compteur++;
 
-__kernel void scrollup (__global unsigned *in, __global unsigned *out)
-{
-  int x = get_global_id (0);
-  int y = get_global_id (1);
+            if(in[(y - 1) * DIM + ( x + 1)] == 0xFFFF00FF)
+              compteur++;
+            if(in[(y * DIM) + (x + 1)] == 0xFFFF00FF)
+              compteur++;
+            if(in[(y + 1) * DIM + (x + 1)] == 0xFFFF00FF)
+              compteur++;   
+          }
+          //Régles du jeu de la vie
+          //Si la cellule courrante est vivante
+          if(in[y * DIM + x] == 0xFFFF00FF){
+            if(compteur == 0 || compteur == 1)
+              out[y * DIM + x] = 0x0;
+            if(compteur == 2 || compteur == 3)
+              out[y * DIM + x] = 0xFFFF00FF;
+            if(compteur > 3)
+             out[y * DIM + x] = 0x0;
+          }
+          //Si elle est morte  
+          if(in [y * DIM + x] == 0x0 && compteur == 3)
+            out [y * DIM + x] = 0xFFFF00FF;
 
-  int compteur = 0;
-  // Si on est pas dans les bords
-  if((x != 0) && (y != 0) && (x != DIM - 1) && (y != DIM -1)){
-
-  // On parcours les voisins de la cellule courrante
-  for(int i = x - 1; i <= x + 1 && i != x; i++)
-    for(int j = y - 1; j <= y + 1 && j != y; j++)
-      // On compte le nombre de cellules vivantes
-      if(in[j * DIM + i] == 0xFFFF00FF)
-        compteur++;
-
-  // Si la cellule courrante est morte et qu'elle a 3 voisines vivantes, elle devient vivante
-  if(in[y * DIM + x] == 0x0 && compteur == 3)
-    out[y * DIM + x] = 0xFFFF00FF;
-
-  // Si elle est vivante et qu'elle a moins de 2 ou plus de 3 voisines vivantes, elle meurt
-  else if(in[y * DIM + x] == 0xFFFF00FF && ((compteur < 3) || (compteur > 2)));
-    out[y * DIM + x] = 0x0;
-      
-  }
-
- }
+          if(in [y * DIM + x] == 0x0 && compteur != 3)
+            out [y * DIM + x] = 0x0;
+    }
 
 // NE PAS MODIFIER
 static float4 color_scatter (unsigned c)
@@ -73,3 +160,4 @@ __kernel void update_texture (__global unsigned *cur, __write_only image2d_t tex
 
   write_imagef (tex, pos, color_scatter (c));
 }
+
