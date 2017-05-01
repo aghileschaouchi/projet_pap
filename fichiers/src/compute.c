@@ -173,45 +173,8 @@ for (unsigned it = 1; it <= nb_iter; it ++) {
 	  deb_j_tuile++;
 
         for (int i = deb_i_tuile; i < fin_i_tuile ; i++)
-          for (int j = deb_j_tuile; j < fin_j_tuile ; j++){  
-          int compteur=0;
-          
-            if(cur_img(i-1, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i-1, j) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i-1, j+1) == 0xFFFF00FF)
-              compteur++;
-
-            if(cur_img(i, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i, j+1) == 0xFFFF00FF)
-              compteur++;
-
-            if(cur_img(i+1, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i+1, j) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i+1, j+1) == 0xFFFF00FF)
-              compteur++;   
-    
-          //Régles du jeu de la vie
-          //Si la cellule courrante est vivante
-          if(cur_img (i, j) == 0xFFFF00FF){
-            if(compteur == 0 || compteur == 1)
-              next_img (i,j) = 0x0;
-            if(compteur == 2 || compteur == 3)
-              next_img (i,j) = 0xFFFF00FF;
-            if(compteur > 3)
-             next_img (i, j) = 0x0;
-          }
-          //Si elle est morte  
-          if(cur_img (i, j) == 0x0 && compteur == 3)
-           next_img (i, j) = 0xFFFF00FF;
-
-          if(cur_img (i, j) == 0x0 && compteur != 3)
-          next_img (i, j) = 0x0;
-      }
+          for (int j = deb_j_tuile; j < fin_j_tuile ; j++)
+	    game_of_life(i,j);
     }
     swap_images ();
   }
@@ -257,47 +220,6 @@ void first_touch_v1 ()
     for(int j=0; j<DIM; j+=512)
       cur_img(i,j) = next_img(i,j) = 0;
   
-  
-#pragma omp parallel for 
-  for(int i=1; i<DIM-1 ; i++) 
-    for(int j=1; j < DIM-1 ; j++){  
-          int compteur=0;
-            if(cur_img(i-1, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i-1, j) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i-1, j+1) == 0xFFFF00FF)
-              compteur++;
-
-            if(cur_img(i, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i, j+1) == 0xFFFF00FF)
-              compteur++;
-
-            if(cur_img(i+1, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i+1, j) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i+1, j+1) == 0xFFFF00FF)
-              compteur++;   
-            
-          //Régles du jeu de la vie
-          //Si la cellule courrante est vivante
-          if(cur_img (i, j) == 0xFFFF00FF){
-            if(compteur == 0 || compteur == 1)
-              next_img (i,j) = 0x0;
-            if(compteur == 2 || compteur == 3)
-              next_img (i,j) = 0xFFFF00FF;
-            if(compteur > 3)
-             next_img (i, j) = 0x0;
-          }
-          //Si elle est morte  
-          if(cur_img (i, j) == 0x0 && compteur == 3)
-           next_img (i, j) = 0xFFFF00FF;
-
-          if(cur_img (i, j) == 0x0 && compteur != 3)
-          next_img (i, j) = 0x0;
-      }
 }
 
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
@@ -305,6 +227,12 @@ unsigned compute_v1(unsigned nb_iter)
 {
   for(unsigned it = 1; it <= nb_iter; it++){
     first_touch_v1 ();
+
+    
+    #pragma omp parallel for 
+      for(int i=1; i<DIM-1 ; i++) 
+        for(int j=1; j < DIM-1 ; j++)
+          game_of_life(i,j);
 
     swap_images ();
   }
@@ -315,104 +243,48 @@ unsigned compute_v1(unsigned nb_iter)
 
 void first_touch_v1_1 ()
 {
-int compteur=0;
+
 //Initialisation (first touch)
 #pragma omp parallel for 
   for(int i=0; i<DIM ; i++) 
     for(int j=0; j < DIM ; j += 512)
       cur_img(i,j) = next_img(i,j) =0;
 
-#pragma omp parallel for collapse(2) schedule(dynamic) reduction(+:compteur)
-  for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
-    for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ)
-      for (int i = i_tuile; i < i_tuile + TILE_SEQ; i++)
-        for (int j = j_tuile; j < j_tuile + TILE_SEQ; j++){
-
-    compteur=0;
-          //On gére les contours
-          //Si le pixel se trouve en haut a gauche
-          if(i == 0 && j == 0){
-              if(cur_img (0, 1) == 0xFFFF00FF)
-                compteur++;
-              if(cur_img (1, 0) == 0xFFFF00FF)
-                compteur++;
-              if(cur_img (1, 1) == 0xFFFF00FF)
-                compteur++;
-          }
-          //En haut a droite
-          else if(i == 0 && j == DIM-1){
-            if(cur_img (0, DIM-2) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (1, DIM-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (1, DIM-2) == 0xFFFF00FF)
-              compteur++;
-          }
-          //En bas a gauche
-          else if(i == DIM-1 && j == 0){
-            if(cur_img (DIM-2, 0) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-2, 1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-1, 1) == 0xFFFF00FF)
-              compteur++;
-          }
-          //En bas a droite
-          else if(i == DIM-1 && j == DIM-1){
-            if(cur_img (DIM-2, DIM-2) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-2, DIM-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-1, DIM-2) == 0xFFFF00FF)
-              compteur++;
-          }
-
-          //Au millieu
-          else if(i != 0 && i != DIM-1 && j != 0 && j != DIM-1){
-            if(cur_img(i-1, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i-1, j) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i-1, j+1) == 0xFFFF00FF)
-              compteur++;
-
-            if(cur_img(i, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i, j+1) == 0xFFFF00FF)
-              compteur++;
-
-            if(cur_img(i+1, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i+1, j) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i+1, j+1) == 0xFFFF00FF)
-              compteur++;   
-            }
-          //Régles du jeu de la vie
-          //Si la cellule courrante est vivante
-          if(cur_img (i, j) == 0xFFFF00FF){
-            if(compteur == 0 || compteur == 1)
-              next_img (i,j) = 0x0;
-            if(compteur == 2 || compteur == 3)
-              next_img (i,j) = 0xFFFF00FF;
-            if(compteur > 3)
-             next_img (i, j) = 0x0;
-          }
-          //Si elle est morte  
-          if(cur_img (i, j) == 0x0 && compteur == 3)
-           next_img (i, j) = 0xFFFF00FF;
-
-          if(cur_img (i, j) == 0x0 && compteur != 3)
-          next_img (i, j) = 0x0;
-  
-      }
 }
 
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v1_1(unsigned nb_iter)
 {
+int deb_i_tuile, deb_j_tuile, fin_i_tuile, fin_j_tuile;
   for(unsigned it = 1; it <= nb_iter; it++){
     first_touch_v1_1 ();
+
+    #pragma omp parallel for collapse(2) schedule(dynamic) reduction(+:deb_i_tuile,deb_j_tuile,fin_i_tuile,fin_j_tuile)
+      for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
+        for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ){
+
+	  fin_i_tuile = i_tuile + TILE_SEQ;
+	  fin_j_tuile = j_tuile + TILE_SEQ;
+
+	  deb_i_tuile = i_tuile;
+	  deb_j_tuile = j_tuile;
+	
+	  if(i_tuile == DIM-TILE_SEQ)
+	    fin_i_tuile--;
+
+	  if(j_tuile == DIM-TILE_SEQ)
+	    fin_j_tuile--;
+
+	  if(i_tuile == 0)
+	    deb_i_tuile++;
+
+	  if(j_tuile == 0)
+	    deb_j_tuile++;
+
+          for (int i = deb_i_tuile; i < fin_i_tuile ; i++)
+            for (int j = deb_j_tuile; j < fin_j_tuile ; j++)
+	      game_of_life(i,j);
+      }
 
     swap_images ();
   }
@@ -453,93 +325,6 @@ void first_touch_v2 ()
       next_img (i, j) = cur_img (i, j) = 0;
       }
 
-  int compteur=0;
-  int i,j;
-
-  #pragma omp parallel
-  #pragma omp single
-  for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_TASK)
-    for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_TASK)
-    #pragma omp task firstprivate(i,j) depend(out:tile[i][j]) depend(in:tile[i-1][j-1], tile[i-1][j], tile[i-1][j+1], tile[i][j-1], tile[i][j+1], tile[i+1][j-1], tile[i+1][j], tile[i+1][j+1])
-      for (int i = i_tuile; i < i_tuile + TILE_TASK; i++)
-        for (int j = j_tuile; j < j_tuile + TILE_TASK; j++){
-    compteur=0;
-          //On gére les contours
-          //Si le pixel se trouve en haut a gauche
-          if(i == 0 && j == 0){
-              if(cur_img (0, 1) == 0xFFFF00FF)
-                compteur++;
-              if(cur_img (1, 0) == 0xFFFF00FF)
-                compteur++;
-              if(cur_img (1, 1) == 0xFFFF00FF)
-                compteur++;
-          }
-          //En haut a droite
-          else if(i == 0 && j == DIM-1){
-            if(cur_img (0, DIM-2) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (1, DIM-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (1, DIM-2) == 0xFFFF00FF)
-              compteur++;
-          }
-          //En bas a gauche
-          else if(i == DIM-1 && j == 0){
-            if(cur_img (DIM-2, 0) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-2, 1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-1, 1) == 0xFFFF00FF)
-              compteur++;
-          }
-          //En bas a droite
-          else if(i == DIM-1 && j == DIM-1){
-            if(cur_img (DIM-2, DIM-2) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-2, DIM-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img (DIM-1, DIM-2) == 0xFFFF00FF)
-              compteur++;
-          }
-          //Au millieu
-          else if(i != 0 && i != DIM-1 && j != 0 && j != DIM-1){
-            if(cur_img(i-1, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i-1, j) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i-1, j+1) == 0xFFFF00FF)
-              compteur++;
-
-            if(cur_img(i, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i, j+1) == 0xFFFF00FF)
-              compteur++;
-
-            if(cur_img(i+1, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i+1, j) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i+1, j+1) == 0xFFFF00FF)
-              compteur++;   
-            }
-          //Régles du jeu de la vie
-          //Si la cellule courrante est vivante
-          if(cur_img (i, j) == 0xFFFF00FF){
-            if(compteur == 0 || compteur == 1)
-              next_img (i,j) = 0x0;
-            if(compteur == 2 || compteur == 3)
-              next_img (i,j) = 0xFFFF00FF;
-            if(compteur > 3)
-             next_img (i, j) = 0x0;
-          }
-          //Si elle est morte  
-          if(cur_img (i, j) == 0x0 && compteur == 3)
-           next_img (i, j) = 0xFFFF00FF;
-
-          if(cur_img (i, j) == 0x0 && compteur != 3)
-          next_img (i, j) = 0x0;
-  
-      }
 }
 
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
@@ -547,6 +332,35 @@ unsigned compute_v2(unsigned nb_iter)
 {
   for(unsigned it = 1; it <= nb_iter; it++){
     first_touch_v2 ();
+
+    int i,j,deb_i_tuile,deb_j_tuile,fin_i_tuile,fin_j_tuile;
+    #pragma omp parallel
+    #pragma omp single
+    for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
+      for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ){
+
+	fin_i_tuile = i_tuile + TILE_SEQ;
+	fin_j_tuile = j_tuile + TILE_SEQ;
+
+	deb_i_tuile = i_tuile;
+	deb_j_tuile = j_tuile;
+	
+	if(i_tuile == DIM-TILE_SEQ)
+	  fin_i_tuile--;
+
+	if(j_tuile == DIM-TILE_SEQ)
+	  fin_j_tuile--;
+
+	if(i_tuile == 0)
+	  deb_i_tuile++;
+
+	if(j_tuile == 0)
+	  deb_j_tuile++;
+        #pragma omp task firstprivate(i,j) depend(out:tile[i][j]) depend(in:tile[i-1][j-1], tile[i-1][j], tile[i-1][j+1], tile[i][j-1], tile[i][j+1], tile[i+1][j-1], tile[i+1][j], tile[i+1][j+1])
+          for (int i = deb_i_tuile; i < fin_i_tuile ; i++)
+            for (int j = deb_j_tuile; j < fin_j_tuile ; j++)
+	      game_of_life(i,j);
+    }
 
     swap_images ();
     return 0; // on ne s'arrête jamais

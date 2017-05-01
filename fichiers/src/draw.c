@@ -66,9 +66,7 @@ void draw_guns (void)
   gun (0, 0, 0);
   gun (0,  DIM-1 -0, 3);
   gun (DIM - 1 , DIM - 1, 2);
-  //gun (200 , 100, 2);
   gun (DIM - 1 , 0, 1);
-  //gun (200 , DIM - 1 -100, 1);
 }
 
 void draw_random (void)
@@ -77,7 +75,10 @@ void draw_random (void)
   for (int i=1; i < DIM-1; i++)
     for(int j=1; j < DIM-1; j++)
       {
-	cur_img (i, j) = random() & 01; 
+	if(random() & 01)
+	  cur_img (i,j) = couleur;
+	else
+	  cur_img (i,j) = 0x0;
       }
 }
   
