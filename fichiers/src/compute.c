@@ -132,7 +132,7 @@ unsigned compute_v0 (unsigned nb_iter)
   for (unsigned it = 1; it <= nb_iter; it ++) {
     for (int i = 1; i < DIM-1; i++)
       for (int j = 1; j < DIM-1; j++)
-  game_of_life(i,j);
+	game_of_life(i,j);
     
     swap_images ();
   }
@@ -146,11 +146,11 @@ unsigned compute_v0 (unsigned nb_iter)
   
 unsigned compute_v0_1 (unsigned nb_iter)
 {
-int fin_i_tuile;
-int fin_j_tuile;
-int deb_i_tuile;
-int deb_j_tuile;
-for (unsigned it = 1; it <= nb_iter; it ++) {
+  int fin_i_tuile;
+  int fin_j_tuile;
+  int deb_i_tuile;
+  int deb_j_tuile;
+  for (unsigned it = 1; it <= nb_iter; it ++) {
     for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
       for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ){
 
@@ -188,10 +188,9 @@ for (unsigned it = 1; it <= nb_iter; it ++) {
 
 unsigned compute_v0_2 (unsigned nb_iter)
 {
-int j;
-int deb_j_tuile=0;
-  for (unsigned it = 1; it <= nb_iter; it ++) {
-  
+  int j;
+  int deb_j_tuile=0;
+    for (unsigned it = 1; it <= nb_iter; it ++) {
       for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
 	for(int i = i_tuile; i < i_tuile + TILE_SEQ ; i++){
 	  for(j = deb_j_tuile; j < deb_j_tuile + TILE_SEQ; j++){
@@ -216,9 +215,9 @@ void first_touch_v1 ()
 
   //Initialisation (first touch)
   #pragma omp parallel for
-  for(int i=0; i<DIM; i++)
-    for(int j=0; j<DIM; j+=512)
-      cur_img(i,j) = next_img(i,j) = 0;
+    for(int i=0; i<DIM; i++)
+      for(int j=0; j<DIM; j+=512)
+        cur_img(i,j) = next_img(i,j) = 0;
   
 }
 
@@ -244,18 +243,18 @@ unsigned compute_v1(unsigned nb_iter)
 void first_touch_v1_1 ()
 {
 
-//Initialisation (first touch)
-#pragma omp parallel for 
-  for(int i=0; i<DIM ; i++) 
-    for(int j=0; j < DIM ; j += 512)
-      cur_img(i,j) = next_img(i,j) =0;
+  //Initialisation (first touch)
+  #pragma omp parallel for 
+    for(int i=0; i<DIM ; i++) 
+      for(int j=0; j < DIM ; j += 512)
+        cur_img(i,j) = next_img(i,j) =0;
 
 }
 
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v1_1(unsigned nb_iter)
 {
-int deb_i_tuile, deb_j_tuile, fin_i_tuile, fin_j_tuile;
+  int deb_i_tuile, deb_j_tuile, fin_i_tuile, fin_j_tuile;
   for(unsigned it = 1; it <= nb_iter; it++){
     first_touch_v1_1 ();
 
@@ -296,10 +295,10 @@ void first_touch_v1_2 ()
 {
   int i,j ;
 
-#pragma omp parallel for
-  for(i=0; i<DIM ; i++) {
-    for(j=0; j < DIM ; j += 512)
-      next_img (i, j) = cur_img (i, j) = 0 ;
+  #pragma omp parallel for
+    for(i=0; i<DIM ; i++) {
+      for(j=0; j < DIM ; j += 512)
+        next_img (i, j) = cur_img (i, j) = 0 ;
   }
 }
 
@@ -320,8 +319,7 @@ void first_touch_v2 ()
 {
   //Initialisation (first touch)
   for(int i=0; i<DIM ; i++)
-    for(int j=0; j < DIM ; j += 512)
-      {
+    for(int j=0; j < DIM ; j += 512){
       next_img (i, j) = cur_img (i, j) = 0;
       }
 
@@ -356,6 +354,7 @@ unsigned compute_v2(unsigned nb_iter)
 
 	if(j_tuile == 0)
 	  deb_j_tuile++;
+
         #pragma omp task firstprivate(i,j) depend(out:tile[i][j]) depend(in:tile[i-1][j-1], tile[i-1][j], tile[i-1][j+1], tile[i][j-1], tile[i][j+1], tile[i+1][j-1], tile[i+1][j], tile[i+1][j+1])
           for (int i = deb_i_tuile; i < fin_i_tuile ; i++)
             for (int j = deb_j_tuile; j < fin_j_tuile ; j++)
