@@ -10,7 +10,7 @@ unsigned version = 0;
 
 //Taille de la tuille en séquentielle
 #define TILE_SEQ 32
-#define TILE_TASK 512
+#define TILE_TASK 32
 
 //Tuile pour les task
 volatile int tile[TILE_TASK][TILE_TASK+1];
@@ -87,24 +87,9 @@ unsigned opencl_used [] = {
 void game_of_life(int i, int j){
           int compteur=0;
 	
-	    if(cur_img(i-1, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i-1, j) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i-1, j+1) == 0xFFFF00FF)
-              compteur++;
-
-            if(cur_img(i, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i, j+1) == 0xFFFF00FF)
-              compteur++;
-
-            if(cur_img(i+1, j-1) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i+1, j) == 0xFFFF00FF)
-              compteur++;
-            if(cur_img(i+1, j+1) == 0xFFFF00FF)
-              compteur++;     
+          compteur = (cur_img(i-1, j-1) == 0xFFFF00FF) + (cur_img(i-1, j) == 0xFFFF00FF) + (cur_img(i-1, j+1) == 0xFFFF00FF)
+	  + (cur_img(i, j-1) == 0xFFFF00FF) + (cur_img(i, j+1) == 0xFFFF00FF) + (cur_img(i+1, j-1) == 0xFFFF00FF) + 
+          (cur_img(i+1, j) == 0xFFFF00FF) + (cur_img(i+1, j+1) == 0xFFFF00FF);     
 	  
           //Régles du jeu de la vie
           //Si la cellule courrante est vivante
@@ -225,7 +210,7 @@ void first_touch_v1 ()
 unsigned compute_v1(unsigned nb_iter)
 {
   for(unsigned it = 1; it <= nb_iter; it++){
-    first_touch_v1 ();
+  //  first_touch_v1 ();
 
     
     #pragma omp parallel for 
@@ -256,7 +241,7 @@ unsigned compute_v1_1(unsigned nb_iter)
 {
   int deb_i_tuile, deb_j_tuile, fin_i_tuile, fin_j_tuile;
   for(unsigned it = 1; it <= nb_iter; it++){
-    first_touch_v1_1 ();
+ //   first_touch_v1_1 ();
 
     #pragma omp parallel for collapse(2) schedule(dynamic) reduction(+:deb_i_tuile,deb_j_tuile,fin_i_tuile,fin_j_tuile)
       for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
@@ -328,43 +313,41 @@ void first_touch_v2 ()
 // Renvoie le nombre d'itérations effectuées avant stabilisation, ou 0
 unsigned compute_v2(unsigned nb_iter)
 {
-  for(unsigned it = 1; it <= nb_iter; it++){
-    first_touch_v2 ();
+  for(unsigned it = 1; it <= nb_iter; it++){  
 
     int i,j,deb_i_tuile,deb_j_tuile,fin_i_tuile,fin_j_tuile;
+
     #pragma omp parallel
     #pragma omp single
     for(int i_tuile = 0; i_tuile < DIM; i_tuile += TILE_SEQ)
-      for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ){
+        for(int j_tuile = 0; j_tuile < DIM; j_tuile += TILE_SEQ){
 
-	fin_i_tuile = i_tuile + TILE_SEQ;
-	fin_j_tuile = j_tuile + TILE_SEQ;
+	  fin_i_tuile = i_tuile + TILE_SEQ;
+	  fin_j_tuile = j_tuile + TILE_SEQ;
 
-	deb_i_tuile = i_tuile;
-	deb_j_tuile = j_tuile;
+	  deb_i_tuile = i_tuile;
+	  deb_j_tuile = j_tuile;
 	
-	if(i_tuile == DIM-TILE_SEQ)
-	  fin_i_tuile--;
+	  if(i_tuile == DIM-TILE_SEQ)
+	    fin_i_tuile--;
 
-	if(j_tuile == DIM-TILE_SEQ)
-	  fin_j_tuile--;
+	  if(j_tuile == DIM-TILE_SEQ)
+	    fin_j_tuile--;
 
-	if(i_tuile == 0)
-	  deb_i_tuile++;
+	  if(i_tuile == 0)
+	    deb_i_tuile++;
 
-	if(j_tuile == 0)
-	  deb_j_tuile++;
+	  if(j_tuile == 0)
+	    deb_j_tuile++;
 
-        #pragma omp task firstprivate(i,j) depend(out:tile[i][j]) depend(in:tile[i-1][j-1], tile[i-1][j], tile[i-1][j+1], tile[i][j-1], tile[i][j+1], tile[i+1][j-1], tile[i+1][j], tile[i+1][j+1])
+	  #pragma omp task firstprivate(deb_i_tuile,deb_j_tuile,fin_i_tuile,fin_j_tuile)
           for (int i = deb_i_tuile; i < fin_i_tuile ; i++)
             for (int j = deb_j_tuile; j < fin_j_tuile ; j++)
 	      game_of_life(i,j);
-    }
-
+      }
     swap_images ();
     return 0; // on ne s'arrête jamais
   }
-  
 }
 
 ///////////////////////////// Version OpenMP task optimisée
